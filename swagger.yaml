@@ -1,0 +1,84 @@
+openapi: 3.0.3
+
+info:
+  title: Digital Detox API
+  description: |-
+    Digital Detox API allows clients to save their progress on detox sessions.
+  contact:
+    email: wong1219@e.ntu.edu.sg
+  version: 1.0.0
+
+tags:
+  - name: Sessions
+    description: Retrieve and save data on detox sessions
+  - name: Leaderboard
+    description: Retrieve the leaderboard
+
+paths:
+  /sessions:
+    post:
+      tags:
+        - Sessions
+      summary: Record a detox session.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: username of the user who has completed a detox session
+                date:
+                  type: string
+                  description: date of the detox session
+                duration:
+                  type: number
+                  description: duration in minutes of the detox session
+              required:
+                - username
+                - date
+                - duration
+      responses:
+        "201":
+          description: "created"
+
+  /leaderboard:
+    get:
+      tags:
+        - Leaderboard
+      summary: Retrieve the leaderboard
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            description: date of the leaderboard
+      responses:
+        "200":
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    description: date of this leaderboard
+                  leaderboard:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        position:
+                          type: number
+                          description: leaderboard position
+                        username:
+                          type: string
+                        numberOfSessions:
+                          type: number
+                          description: number of detox sessions
+                        totalDurationOfSessions:
+                          type: number
+                          description: total duration of detox sessions
