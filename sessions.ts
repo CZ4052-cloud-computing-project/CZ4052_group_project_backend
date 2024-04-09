@@ -4,6 +4,12 @@ import {
   Context,
 } from "aws-lambda";
 import Ajv, { JSONSchemaType } from "ajv";
+import {
+  DynamoDBClient,
+  UpdateItemCommand,
+  UpdateItemCommandInput,
+  UpdateItemCommandOutput,
+} from "@aws-sdk/client-dynamodb";
 
 const ajv = new Ajv();
 
@@ -72,6 +78,25 @@ export const sessionsHandler = async (
   console.log(`Username: ${detoxSession.username}`);
   console.log(`Date: ${detoxSession.date}`);
   console.log(`Duration: ${detoxSession.duration}`);
+
+  const client: DynamoDBClient = new DynamoDBClient();
+  const input: UpdateItemCommandInput = {
+    TableName: "digital-detox-sessions-table",
+    Key: {
+      username: { S: detoxSession.username },
+      date: { S: detoxSession.date },
+    },
+    UpdateExpression:
+      "SET durations = list_append(if_not_exists(durations, :empty_list), :new_duration)",
+    ExpressionAttributeValues: {
+      ":new_duration": { L: [{ N: detoxSession.duration.toString() }] },
+      ":empty_list": { L: [] },
+    },
+    ReturnValues: "NONE",
+  };
+  const command: UpdateItemCommand = new UpdateItemCommand(input);
+  const response: UpdateItemCommandOutput = await client.send(command);
+  console.log(`DynamoDB response: ${response}`);
 
   return {
     statusCode: 201,
