@@ -1,8 +1,18 @@
-import { Context, APIGatewayProxyResult, APIGatewayEvent } from 'aws-lambda';
+import {Context, APIGatewayProxyResult, APIGatewayProxyEvent} from 'aws-lambda';
+import {sessionsHandler} from "./sessions";
+import {leaderboardHandler} from "./leaderboard";
 
-export const handler = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
     console.log(`Event: ${JSON.stringify(event, null, 2)}`);
     console.log(`Context: ${JSON.stringify(context, null, 2)}`);
+
+    switch (event.path) {
+        case "/default/sessions":
+            return sessionsHandler(event, context);
+        case "/default/leaderboard":
+            return leaderboardHandler(event, context);
+    }
+
     return {
         statusCode: 200,
         headers: {
