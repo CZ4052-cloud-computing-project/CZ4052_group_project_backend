@@ -3,6 +3,19 @@ import {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
+import {
+  DynamoDBClient,
+  ScanCommand,
+  ScanCommandInput,
+  ScanCommandOutput,
+} from "@aws-sdk/client-dynamodb";
+
+interface LeaderboardEntry {
+  position: number;
+  username: string;
+  numberOfSessions: number;
+  totalDurationOfSessions: number;
+}
 
 export const leaderboardHandler = async (
   event: APIGatewayProxyEvent,
@@ -25,7 +38,46 @@ export const leaderboardHandler = async (
     };
   }
 
-  console.log(`Date ${event.queryStringParameters["date"]}`);
+  const leaderboardDate = event.queryStringParameters["date"];
+  console.log(`Date ${leaderboardDate}`);
+
+  const client: DynamoDBClient = new DynamoDBClient();
+  const input: ScanCommandInput = {
+    TableName: "digital-detox-sessions-table",
+    FilterExpression: "#dateAttr = :dateVal",
+    ExpressionAttributeNames: {
+      "#dateAttr": "date",
+    },
+    ExpressionAttributeValues: {
+      ":dateVal": { S: leaderboardDate },
+    },
+  };
+  const command: ScanCommand = new ScanCommand(input);
+  const response: ScanCommandOutput = await client.send(command);
+  console.log(`DynamoDB response: ${response}`);
+
+  const leaderboardEntries = response.Items?.map((item, index) => {
+    const username = item.username.S;
+    if (!item.durations.L) {
+      return {
+        username: username,
+        numberOfSessions: 0,
+        totalDurationOfSessions: 0,
+      };
+    }
+    const durations = item.durations.L.map((duration) => Number(duration.N));
+    const totalDuration = durations.reduce((acc, cur) => acc + cur, 0);
+
+    return {
+      username: username,
+      numberOfSessions: durations?.length,
+      totalDurationOfSessions: totalDuration,
+    };
+  });
+
+  leaderboardEntries
+    ?.sort((a, b) => b.totalDurationOfSessions - a.totalDurationOfSessions)
+    .map((entry, index) => ({ ...entry, position: index + 1 }));
 
   return {
     statusCode: 200,
@@ -33,21 +85,8 @@ export const leaderboardHandler = async (
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      date: "2024-04-08",
-      leaderboard: [
-        {
-          position: 1,
-          username: "john",
-          numberOfSessions: 10,
-          totalDurationOfSessions: 600,
-        },
-        {
-          position: 2,
-          username: "tom",
-          numberOfSessions: 5,
-          totalDurationOfSessions: 300,
-        },
-      ],
+      date: leaderboardDate,
+      leaderboard: leaderboardEntries ? leaderboardEntries : [],
     }),
   };
 };
