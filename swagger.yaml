@@ -3,23 +3,23 @@ openapi: 3.0.3
 info:
   title: Digital Detox API
   description: |-
-    Digital Detox API allows clients to save their progress on detox sessions.
-  contact:
-    email: wong1219@e.ntu.edu.sg
+    Digital Detox API allows clients to save, compare and analyse their progress on detox sessions.
   version: 1.0.0
 
 tags:
   - name: Sessions
-    description: Retrieve and save data on detox sessions
+    description: Save your detox sessions.
   - name: Leaderboard
-    description: Retrieve the leaderboard
+    description: Compare your detox sessions with other users.
+  - name: Analysis
+    description: Analyse your detox sessions over time.
 
 paths:
   /sessions:
     post:
       tags:
         - Sessions
-      summary: Record a detox session.
+      summary: Save detox session
       requestBody:
         content:
           application/json:
@@ -41,7 +41,7 @@ paths:
                 - duration
       responses:
         "201":
-          description: "created"
+          description: Created
 
   /leaderboard:
     get:
@@ -57,7 +57,7 @@ paths:
             description: date of the leaderboard
       responses:
         "200":
-          description: Leaderboard
+          description: OK
           content:
             application/json:
               schema:
@@ -76,9 +76,54 @@ paths:
                           description: leaderboard position
                         username:
                           type: string
+                          description: username of the user
                         numberOfSessions:
                           type: number
                           description: number of detox sessions
                         totalDurationOfSessions:
                           type: number
                           description: total duration of detox sessions
+
+  /statistics:
+    get:
+      tags:
+        - Analysis
+      summary: Retrieve detox sessions over a time period
+      parameters:
+        - in: query
+          name: username
+          required: true
+          schema:
+            type: string
+            description: username of the user whose detox session will be analysed
+        - in: query
+          name: fromDate
+          required: true
+          schema:
+            type: string
+            description: start of the date range of detox sessions to be analysed, including the date specified by this value
+        - in: query
+          name: endDate
+          required: true
+          schema:
+            type: string
+            description: end of the date range of detox sessions to be analysed, including the date specified by this value
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      description: date
+                    numberOfSessions:
+                      type: number
+                      description: number of detox sessions
+                    totalDurationOfSessions:
+                      type: number
+                      description: total duration of detox sessions
