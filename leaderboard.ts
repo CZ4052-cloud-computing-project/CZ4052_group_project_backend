@@ -56,7 +56,7 @@ export const leaderboardHandler = async (
   const response: ScanCommandOutput = await client.send(command);
   console.log(`DynamoDB response: ${response}`);
 
-  const leaderboardEntries = response.Items?.map((item, index) => {
+  const unorderedLeaderboard = response.Items?.map((item, index) => {
     const username = item.username.S;
     if (!item.durations.L) {
       return {
@@ -75,9 +75,9 @@ export const leaderboardHandler = async (
     };
   });
 
-  leaderboardEntries
+  const orderedLeaderboard = unorderedLeaderboard
     ?.sort((a, b) => b.totalDurationOfSessions - a.totalDurationOfSessions)
-    .map((entry, index) => ({ ...entry, position: index + 1 }));
+    .map((entry, index) => ({ position: index + 1, ...entry }));
 
   return {
     statusCode: 200,
@@ -86,7 +86,7 @@ export const leaderboardHandler = async (
     },
     body: JSON.stringify({
       date: leaderboardDate,
-      leaderboard: leaderboardEntries ? leaderboardEntries : [],
+      leaderboard: orderedLeaderboard ? orderedLeaderboard : [],
     }),
   };
 };
