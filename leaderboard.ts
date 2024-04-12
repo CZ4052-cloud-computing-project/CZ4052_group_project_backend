@@ -34,7 +34,7 @@ export const leaderboardHandler = async (
   if (!event.queryStringParameters || !event.queryStringParameters["date"]) {
     return {
       statusCode: 400,
-      body: "Query parameter: date must be specified",
+      body: "Query parameter: date must be specified.",
     };
   }
 

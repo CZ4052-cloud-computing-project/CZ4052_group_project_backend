@@ -11,7 +11,7 @@ tags:
     description: Save your detox sessions.
   - name: Leaderboard
     description: Compare your detox sessions with other users.
-  - name: Analysis
+  - name: Statistics
     description: Analyse your detox sessions over time.
 
 paths:
@@ -87,7 +87,7 @@ paths:
   /statistics:
     get:
       tags:
-        - Analysis
+        - Statistics
       summary: Retrieve detox sessions over a time period
       parameters:
         - in: query
@@ -97,7 +97,7 @@ paths:
             type: string
             description: username of the user whose detox session will be analysed
         - in: query
-          name: fromDate
+          name: startDate
           required: true
           schema:
             type: string

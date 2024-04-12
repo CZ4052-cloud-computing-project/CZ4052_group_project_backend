@@ -5,6 +5,7 @@ import {
 } from "aws-lambda";
 import { sessionsHandler } from "./sessions";
 import { leaderboardHandler } from "./leaderboard";
+import { statisticsHandler } from "./statistics";
 
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -18,6 +19,8 @@ export const handler = async (
       return sessionsHandler(event, context);
     case "/default/leaderboard":
       return leaderboardHandler(event, context);
+    case "/default/statistics":
+      return statisticsHandler(event, context);
   }
 
   return {
